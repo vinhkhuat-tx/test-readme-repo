@@ -2,20 +2,20 @@
 
 Module này tạo Lambda functions được trigger bởi **EventBridge Scheduler** theo lịch định kỳ để xử lý file `manifest.json` từ S3 và đồng bộ lineage với OpenMetadata. Lambda functions chạy trong VPC với subnet và security group được cấu hình.
 
-## 📋 Features
+## Features
 
-- ✅ **EventBridge Scheduler**: Trigger Lambda theo lịch định kỳ (rate hoặc cron expression)
-- ✅ **VPC-enabled Lambda**: Chạy trong VPC với private subnets và security groups
-- ✅ **OpenMetadata Integration**: Đồng bộ lineage từ dbt manifest.json vào OpenMetadata
-- ✅ **Hub-Spoke Lineage**: Tự động tạo lineage giữa các bảng có tên giống nhau trong hub_database và spoke_database
-- ✅ **AWS Secrets Manager**: Lấy database credentials và API tokens từ Secrets Manager
-- ✅ **PostgreSQL Connection**: Kết nối trực tiếp với OpenMetadata database để query và lưu state
-- ✅ **Docker Build Support**: Build Lambda package với native dependencies (psycopg2)
-- ✅ **Auto Naming Convention**: `{env}-{last4digits}-{region_short}-{name}`
-- ✅ **CloudWatch Logs**: Logs với retention period configurable
-- ✅ **Custom IAM Policies**: Permissions cho S3, Secrets Manager, CloudWatch, VPC
+- **EventBridge Scheduler**: Trigger Lambda theo lịch định kỳ (rate hoặc cron expression)
+- **VPC-enabled Lambda**: Chạy trong VPC với private subnets và security groups
+- **OpenMetadata Integration**: Đồng bộ lineage từ dbt manifest.json vào OpenMetadata
+- **Hub-Spoke Lineage**: Tự động tạo lineage giữa các bảng có tên giống nhau trong hub_database và spoke_database
+- **AWS Secrets Manager**: Lấy database credentials và API tokens từ Secrets Manager
+- **PostgreSQL Connection**: Kết nối trực tiếp với OpenMetadata database để query và lưu state
+- **Docker Build Support**: Build Lambda package với native dependencies (psycopg2)
+- **Auto Naming Convention**: `{env}-{last4digits}-{region_short}-{name}`
+- **CloudWatch Logs**: Logs với retention period configurable
+- **Custom IAM Policies**: Permissions cho S3, Secrets Manager, CloudWatch, VPC
 
-## 🏗️ Kiến Trúc Triển Khai
+## Kiến Trúc Triển Khai
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -105,7 +105,7 @@ Module này tạo Lambda functions được trigger bởi **EventBridge Schedule
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 📁 Structure
+## Structure
 
 ```
 services/lambda-s3-processor/
@@ -127,13 +127,13 @@ modules/layer/lambda-s3-processor/
 └── outputs.tf                        # Layer outputs
 ```
 
-## 🚀 Usage
+## Usage
 
 ### 1. Configure terraform.tfvars
 
 File `terraform.tfvars` chứa tất cả các cấu hình cho module. Dưới đây là giải thích chi tiết từng parameter:
 
-#### 📌 Common Configuration
+#### Common Configuration
 
 ```hcl
 stage = "dev"
@@ -156,7 +156,7 @@ tags = {
   - `ManagedBy`: Tool quản lý infrastructure (Terraform)
   - `Purpose`: Mục đích của resources
 
-#### 🔐 IAM Role Configuration
+#### IAM Role Configuration
 
 ```hcl
 iam_role_name = "lambda-s3-processor"
@@ -184,7 +184,7 @@ s3_bucket_arns = [
   - Format: `arn:aws:s3:::bucket-name`
   - **Lưu ý**: Policy tự động thêm `/*` suffix cho object-level permissions
 
-#### 🌐 VPC Configuration
+#### VPC Configuration
 
 ```hcl
 vpc_subnet_ids = [
@@ -211,7 +211,7 @@ vpc_security_group_ids = [
   - **Inbound rules**: Thường không cần (trừ khi Lambda expose service)
   - Lambda sẽ áp dụng tất cả security groups trong list
 
-#### ⚡ Lambda Functions Configuration
+#### Lambda Functions Configuration
 
 ```hcl
 lambda_functions = {
@@ -319,7 +319,7 @@ lambda_functions = {
   - Giá trị phổ biến: 1, 3, 5, 7, 14, 30, 60, 90, 120, 180, 365
   - `7` days đủ cho debugging, tiết kiệm chi phí
 
-#### 📅 EventBridge Scheduler Configuration
+#### EventBridge Scheduler Configuration
 
 ```hcl
 manifest_bucket = "langfuse-ap-southeast-1-302010997939"
@@ -398,11 +398,11 @@ terraform apply
 terraform output
 ```
 
-## 📝 Lambda Function Code
+## Lambda Function Code
 
 Lambda function code trong `lambda/manifest-processor/index.py` thực hiện các công việc sau:
 
-### 🔑 Core Functions
+### Core Functions
 
 #### 1. `lambda_handler(event, context)`
 - **Entry point** của Lambda function
@@ -474,7 +474,7 @@ Lambda function code trong `lambda/manifest-processor/index.py` thực hiện c�
 - Run hub-spoke cross-database lineage
 - Close connections
 
-### 📦 Dependencies
+### Dependencies
 
 File `requirements.txt`:
 ```
@@ -487,7 +487,7 @@ boto3>=1.34.0
 - **psycopg2-binary**: PostgreSQL adapter với native binaries
 - **boto3**: AWS SDK cho S3 và Secrets Manager
 
-### 🔄 Processing Flow
+### Processing Flow
 
 ```
 lambda_handler()
@@ -530,23 +530,23 @@ lambda_handler()
             └─► Close connections và return success
 ```
 
-## 🔧 Configuration Options
+## Configuration Options
 
 ### Lambda Functions
 
 | Parameter | Type | Description | Required | Default |
 |-----------|------|-------------|----------|---------|
-| `function_name` | string | Lambda function name (sẽ được thêm prefix) | ✅ Yes | - |
-| `description` | string | Function description | ✅ Yes | - |
-| `handler` | string | Lambda handler (e.g., index.lambda_handler) | ✅ Yes | - |
-| `runtime` | string | Runtime (python3.11, nodejs20.x, etc.) | ✅ Yes | - |
-| `timeout` | number | Function timeout (seconds, max 900) | ✅ Yes | - |
-| `memory_size` | number | Memory in MB (128-10240) | ✅ Yes | - |
-| `filename` | string | Path to ZIP file | ❌ No | null |
-| `s3_bucket` | string | S3 bucket for code deployment | ❌ No | null |
-| `s3_key` | string | S3 key for code deployment | ❌ No | null |
-| `environment.variables` | map(string) | Environment variables | ❌ No | {} |
-| `logs_retention_days` | number | CloudWatch Logs retention (days) | ❌ No | 7 |
+| `function_name` | string | Lambda function name (sẽ được thêm prefix) |  Yes | - |
+| `description` | string | Function description |  Yes | - |
+| `handler` | string | Lambda handler (e.g., index.lambda_handler) |  Yes | - |
+| `runtime` | string | Runtime (python3.11, nodejs20.x, etc.) |  Yes | - |
+| `timeout` | number | Function timeout (seconds, max 900) |  Yes | - |
+| `memory_size` | number | Memory in MB (128-10240) |  Yes | - |
+| `filename` | string | Path to ZIP file |  No | null |
+| `s3_bucket` | string | S3 bucket for code deployment |  No | null |
+| `s3_key` | string | S3 key for code deployment |  No | null |
+| `environment.variables` | map(string) | Environment variables |  No | {} |
+| `logs_retention_days` | number | CloudWatch Logs retention (days) |  No | 7 |
 
 **Lưu ý**:
 - Phải có **hoặc** `filename` (local ZIP) **hoặc** `s3_bucket` + `s3_key` (S3-based deployment)
@@ -558,9 +558,9 @@ lambda_handler()
 
 | Parameter | Type | Description | Required | Default | Example |
 |-----------|------|-------------|----------|---------|---------|
-| `schedule_expression` | string | Schedule expression (rate or cron) | ✅ Yes | - | `rate(1 hour)` |
-| `manifest_bucket` | string | S3 bucket name | ✅ Yes | - | `my-bucket` |
-| `manifest_key` | string | S3 object key | ✅ Yes | - | `manifest.json` |
+| `schedule_expression` | string | Schedule expression (rate or cron) |  Yes | - | `rate(1 hour)` |
+| `manifest_bucket` | string | S3 bucket name |  Yes | - | `my-bucket` |
+| `manifest_key` | string | S3 object key |  Yes | - | `manifest.json` |
 
 **Schedule Expression Syntax**:
 - **Rate**: `rate(value unit)` where unit is `minute(s)`, `hour(s)`, `day(s)`
@@ -579,8 +579,8 @@ lambda_handler()
 
 | Parameter | Type | Description | Required |
 |-----------|------|-------------|----------|
-| `vpc_subnet_ids` | list(string) | Private subnet IDs | ✅ Yes |
-| `vpc_security_group_ids` | list(string) | Security group IDs | ✅ Yes |
+| `vpc_subnet_ids` | list(string) | Private subnet IDs |  Yes |
+| `vpc_security_group_ids` | list(string) | Security group IDs |  Yes |
 
 **Requirements**:
 - Subnets **must** be private with NAT Gateway route
@@ -593,9 +593,9 @@ lambda_handler()
 
 | Parameter | Type | Description | Required | Default |
 |-----------|------|-------------|----------|---------|
-| `iam_role_name` | string | IAM role name (sẽ được thêm prefix) | ✅ Yes | - |
-| `s3_bucket_arns` | list(string) | S3 bucket ARNs for access | ✅ Yes | - |
-| `role_policy_arns` | list(string) | Additional managed policy ARNs | ❌ No | [] |
+| `iam_role_name` | string | IAM role name (sẽ được thêm prefix) |  Yes | - |
+| `s3_bucket_arns` | list(string) | S3 bucket ARNs for access |  Yes | - |
+| `role_policy_arns` | list(string) | Additional managed policy ARNs |  No | [] |
 
 **Built-in Permissions**:
 - S3: `s3:GetObject`, `s3:ListBucket` on specified buckets
@@ -607,16 +607,16 @@ lambda_handler()
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `LOG_LEVEL` | Logging level | ❌ No | `INFO` |
-| `MAIN_URL` | OpenMetadata API base URL | ✅ Yes | `https://om.example.com/api` |
-| `OM_DB_SECRET` | Secrets Manager secret for DB credentials | ✅ Yes | `prod/om-db` |
-| `OM_TOKEN_SECRET` | Secrets Manager secret for API token | ✅ Yes | `prod/om-token` |
-| `MANIFEST_BUCKET` | S3 bucket name | ✅ Yes | `my-bucket` |
-| `MANIFEST_KEY` | S3 object key | ✅ Yes | `manifest.json` |
-| `HUB_DATABASE` | Hub database name in OpenMetadata | ✅ Yes | `hub_database` |
-| `SPOKE_DATABASE` | Spoke database name in OpenMetadata | ✅ Yes | `spoke_database` |
+| `LOG_LEVEL` | Logging level |  No | `INFO` |
+| `MAIN_URL` | OpenMetadata API base URL |  Yes | `https://om.example.com/api` |
+| `OM_DB_SECRET` | Secrets Manager secret for DB credentials |  Yes | `prod/om-db` |
+| `OM_TOKEN_SECRET` | Secrets Manager secret for API token |  Yes | `prod/om-token` |
+| `MANIFEST_BUCKET` | S3 bucket name |  Yes | `my-bucket` |
+| `MANIFEST_KEY` | S3 object key |  Yes | `manifest.json` |
+| `HUB_DATABASE` | Hub database name in OpenMetadata |  Yes | `hub_database` |
+| `SPOKE_DATABASE` | Spoke database name in OpenMetadata |  Yes | `spoke_database` |
 
-## 📤 Outputs
+## Outputs
 
 | Output | Description |
 |--------|-------------|
@@ -626,11 +626,11 @@ lambda_handler()
 | `lambda_function_names` | Map of Lambda function names |
 | `lambda_function_invoke_arns` | Map of Lambda invoke ARNs |
 
-## 🔐 IAM Permissions
+## IAM Permissions
 
 Lambda IAM role được tạo tự động với các permissions sau:
 
-### 📋 Built-in Policies
+### Built-in Policies
 
 #### 1. S3 Access
 ```json
@@ -697,7 +697,7 @@ Includes:
 - Create/manage ENIs in VPC subnets
 - Required for VPC-enabled Lambda
 
-### 🔧 Trust Relationship
+### Trust Relationship
 
 ```json
 {
